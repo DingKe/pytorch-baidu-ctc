@@ -18,33 +18,33 @@
 
 
 #define CHECK_CONTIGUOUS(x)                                     \
-  AT_CHECK((x).is_contiguous(), #x " must be contiguous")
+  TORCH_CHECK((x).is_contiguous(), #x " must be contiguous")
 
 #define CHECK_CPU(x)                                            \
-  AT_CHECK((x).device().type() == c10::Device::Type::CPU,       \
+  TORCH_CHECK((x).device().type() == c10::Device::Type::CPU,    \
            #x " must be located in the CPU")
 
 #define CHECK_CPU_OR_CUDA(x)                                    \
-  AT_CHECK(((x).device().type() == c10::Device::Type::CPU ||    \
+  TORCH_CHECK(((x).device().type() == c10::Device::Type::CPU || \
             (x).device().type() == c10::Device::Type::CUDA),    \
            #x " must be located in the CPU or a CUDA device")
 
-#define CHECK_FLOAT(x)                                                  \
-  AT_CHECK((x).type().scalarType() == at::ScalarType::Float,            \
+#define CHECK_FLOAT(x)                                          \
+  TORCH_CHECK((x).scalar_type() == at::ScalarType::Float,       \
            #x " must be a Float tensor")
 
-#define CHECK_INT(x)                                                    \
-  AT_CHECK((x).type().scalarType() == at::ScalarType::Int,              \
+#define CHECK_INT(x)                                            \
+  TORCH_CHECK((x).scalar_type() == at::ScalarType::Int,         \
            #x " must be a Int tensor")
 
 #define CHECK_NUM_DIM_IS_2_OR_3(x)              \
-  AT_CHECK((x).dim() == 2 || (x).dim() == 3,    \
+  TORCH_CHECK((x).dim() == 2 || (x).dim() == 3, \
            #x " must have 2 or 3 dimensions")
 
 #define CHECK_SAME_NUM_ELEMENTS(t1, t2) do {                                 \
     const auto s1 = (t1).numel();                                            \
     const auto s2 = (t2).numel();                                            \
-    AT_CHECK(s1 == s2,                                                       \
+    TORCH_CHECK(s1 == s2,                                                    \
              "Number of elements of " #t1 " and " #t2 " must be equal "      \
              "(" + std::to_string(s1) + " vs. " + std::to_string(s2) + ")"); \
   } while(0)
@@ -52,7 +52,7 @@
 #define CHECK_WARP_CTC_CALL(s) do {                             \
     const ctcStatus_t status = (s);                             \
     const std::string status_str(ctcGetStatusString(status));   \
-    AT_CHECK(status == CTC_STATUS_SUCCESS,                      \
+    TORCH_CHECK(status == CTC_STATUS_SUCCESS,                   \
              "ctc_loss failed with status " + status_str);      \
   } while(0)
 
@@ -108,7 +108,7 @@ std::tuple<at::Tensor, at::Tensor> ctc_loss(
   size_t workspace_size = 0;
   CHECK_WARP_CTC_CALL(
       get_workspace_size(
-          ys.data<int>(), xs.data<int>(), alphabet_size, minibatch, ctc_opts,
+          ys.data_ptr<int>(), xs.data_ptr<int>(), alphabet_size, minibatch, ctc_opts,
           &workspace_size));
 
   at::TensorOptions workspace_opts(x.device());
@@ -119,15 +119,15 @@ std::tuple<at::Tensor, at::Tensor> ctc_loss(
   c10::DeviceGuard device_guard(x.device());
   CHECK_WARP_CTC_CALL(
       compute_ctc_loss(
-          x.data<float>(),
-          grad_x.data<float>(),
-          y.data<int>(),
-          ys.data<int>(),
-          xs.data<int>(),
+          x.data_ptr<float>(),
+          grad_x.data_ptr<float>(),
+          y.data_ptr<int>(),
+          ys.data_ptr<int>(),
+          xs.data_ptr<int>(),
           alphabet_size,
           minibatch,
-          losses.data<float>(),
-          workspace.data<uint8_t>(),
+          losses.data_ptr<float>(),
+          workspace.data_ptr<uint8_t>(),
           ctc_opts));
 
   return std::make_tuple(losses, grad_x);

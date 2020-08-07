@@ -8,8 +8,8 @@ from setuptools import setup, find_packages
 from torch.utils.cpp_extension import BuildExtension, CppExtension, CUDAExtension
 
 extra_compile_args = {
-    "cxx": ["-std=c++11", "-O3", "-fopenmp"],
-    "nvcc": ["-std=c++11", "-O3", "--compiler-options=-fopenmp"],
+    "cxx": ["-std=c++14", "-O3", "-fopenmp"],
+    "nvcc": ["-std=c++14", "-O3", "--compiler-options=-fopenmp"],
 }
 
 CC = os.getenv("CC", None)
